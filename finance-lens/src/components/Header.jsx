@@ -1,73 +1,45 @@
 
-// src/components/Header.jsx
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import SummaryLevelToggle from "./SummaryLevelToggle";
+import { useRef } from "react";
 
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const q = new URLSearchParams(location.search).get("q") || "";
+  const timer = useRef(null);
 
   function onSearch(e) {
     e.preventDefault();
     const v = e.target.q.value.trim();
-    navigate(v ? `/?q=${encodeURIComponent(v)}` : "/");
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      navigate(v ? `/?q=${encodeURIComponent(v)}` : "/");
+    }, 250); // small debounce for nicer UX
   }
 
   return (
-    <header
-      className="
-        bg-black text-white border-b border-black/60 sticky top-0 z-50
-        [&_a]:text-white [&_a:visited]:text-white [&_a:hover]:text-white/80 [&_a:active]:text-white [&_a]:no-underline
-      "
-    >
-      {/* Row 1: Left (Logo big), Right (Feed · Watchlist · Search aligned with equal gaps, shifted to the right) */}
-      <div className="mx-auto px-4 md:px-6 lg:px-8 py-3">
-        <div className="flex items-center">
-          {/* LEFT: Logo — bigger and vertically centered */}
-          <Link to="/" className="font-semibold text-2xl md:text-3xl leading-none">
-            FinanceLens
-          </Link>
+    <header className="bg-black text-white border-b border-black/20 w-full">
+      {/* Full-width container with responsive horizontal padding */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 flex items-center gap-3">
+        <Link to="/" className="text-xl font-semibold tracking-tight">FinanceLens</Link>
+        
+        <div className="ml-50" />
+        
+        <nav className="flex items-center gap-4 text-sm">
+          <Link to="/" className="hover:underline">Feed</Link>
+          <Link to="/briefing" className="hover:underline">Briefing</Link>
+        </nav>
 
-          {/* Spacer pushes the group to the right */}
-          <div className="flex-1" />
-
-          {/* RIGHT GROUP: Feed · Watchlist · Search (same size as Beginner, equal spacing) */}
-          <div className="flex items-center gap-6 md:gap-8">
-            {/* Nav links — match Beginner size */}
-            <Link to="/" className="text-sm font-medium">
-              Feed
-            </Link>
-            <Link to="/watchlist" className="text-sm font-medium">
-              Watchlist
-            </Link>
-
-            {/* Search (third item in the group) */}
-            <form onSubmit={onSearch}>
-              <input
-                name="q"
-                defaultValue={q}
-                placeholder="Search headlines, sectors…"
-                className="
-                  w-56 md:w-72 lg:w-80
-                  rounded-md border border-white/20 bg-black/30
-                  text-white placeholder:text-white/70
-                  px-3 py-2 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-white/30
-                "
-                aria-label="Search"
-              />
-            </form>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 2: SummaryLevelToggle BELOW header content, inside black background, right-aligned */}
-      <div className="mx-auto px-4 md:px-6 lg:px-8 pb-3">
-        <div className="w-full flex justify-end">
-          {/* Make it the same size as Feed/Watchlist: text-sm */}
-          <SummaryLevelToggle align="right-on-dark" />
-        </div>
+        <form onSubmit={onSearch} className="flex-1">
+          <label htmlFor="q" className="sr-only">Search</label>
+          <input
+            id="q"
+            name="q"
+            defaultValue={q}
+            placeholder="Search tickers, sources, topics..."
+            className="w-full border rounded px-3 py-2 text-sm"
+          />
+        </form>
       </div>
     </header>
   );
