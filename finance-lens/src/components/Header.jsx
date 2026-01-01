@@ -14,32 +14,40 @@ export default function Header() {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       navigate(v ? `/?q=${encodeURIComponent(v)}` : "/");
-    }, 250); // small debounce for nicer UX
+    }, 250);
   }
 
   return (
-    <header className="bg-black text-white border-b border-black/20 w-full">
-      {/* Full-width container with responsive horizontal padding */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 flex items-center gap-3">
-        <Link to="/" className="text-xl font-semibold tracking-tight">FinanceLens</Link>
-        
-        <div className="ml-50" />
-        
-        <nav className="flex items-center gap-4 text-sm">
-          <Link to="/" className="hover:underline">Feed</Link>
-          <Link to="/briefing" className="hover:underline">Briefing</Link>
-        </nav>
+    // Set a fixed height and expose it as a CSS variable
+    <header
+      className="bg-black text-white border-b border-black/20 w-full"
+      style={{ height: "72px", "--app-header-h": "72px" }}
+    >
+      <div className="w-full h-full px-4 sm:px-6 lg:px-8 flex items-center">
+        <Link to="/" className="text-2xl font-semibold tracking-tight">
+          FinanceLens
+        </Link>
 
-        <form onSubmit={onSearch} className="flex-1">
-          <label htmlFor="q" className="sr-only">Search</label>
-          <input
-            id="q"
-            name="q"
-            defaultValue={q}
-            placeholder="Search tickers, sources, topics..."
-            className="w-full border rounded px-3 py-2 text-sm"
-          />
-        </form>
+        <div className="ml-6" />
+
+        <div className="flex items-center gap-4 flex-1">
+          <nav className="flex items-center gap-4 text-sm">
+            <Link to="/" className="hover:underline">Feed</Link>
+            <Link to="/briefing" className="hover:underline">Briefing</Link>
+            <Link to="/watchlist" className="hover:underline">Watchlist</Link>
+          </nav>
+
+          <form onSubmit={onSearch} className="flex-1">
+            <label htmlFor="q" className="sr-only">Search</label>
+            <input
+              id="q"
+              name="q"
+              defaultValue={q}
+              placeholder="Search tickers, sources, topics..."
+              className="w-full rounded px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40"
+            />
+          </form>
+        </div>
       </div>
     </header>
   );

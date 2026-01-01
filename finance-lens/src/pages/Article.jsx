@@ -1,5 +1,4 @@
 
-// src/pages/Article.jsx
 import { useParams, Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ErrorBanner from "../components/ErrorBanner.jsx";
@@ -7,10 +6,10 @@ import WatchlistButton from "../components/WatchlistButton.jsx";
 
 export default function Article() {
   const { encodedId } = useParams();
-  const id = decodeURIComponent(encodedId); // using article.link as ID
+  const id = decodeURIComponent(encodedId);
   const location = useLocation();
 
-  // Prefer the article passed from Feed (fast path)
+  // Prefer article passed via state for instant render
   const initialArticle = location.state?.article || null;
 
   const [article, setArticle] = useState(initialArticle);
@@ -20,61 +19,50 @@ export default function Article() {
   useEffect(() => {
     let cancelled = false;
 
-    // If we already have the article from state, skip fetching
     if (initialArticle) return;
 
     async function run() {
       try {
         setLoading(true);
         setErr("");
-
-        // Quote the link to search exact match
         const res = await fetch("/api/articles", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ q: `"${id}"`, pageSize: 1 })
+          body: JSON.stringify({ q: `"${id}"`, pageSize: 1 }),
         });
 
         if (!res.ok) {
           const e = await res.json().catch(() => ({}));
-          const msg = e?.detail || e?.error || `Error ${res.status}`;
-          console.error("Article fetch error:", msg);
-          throw new Error(msg);
+          throw new Error(e?.detail || e?.error || `Error ${res.status}`);
         }
 
         const data = await res.json();
         const a = (data.articles || [])[0] || null;
-
         if (!cancelled) {
-          if (!a) {
-            setErr("Article not found from source.");
-          }
+          if (!a) setErr("Article not found from source.");
           setArticle(a);
         }
       } catch (e) {
-        if (!cancelled) {
-          console.error("Article fetch exception:", e);
-          setErr(e.message || "Failed to load article");
-        }
+        if (!cancelled) setErr(e.message || "Failed to load article");
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
     run();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [id, initialArticle]);
 
-  // Render states
   if (loading) return <p className="text-sm text-gray-600">Loading…</p>;
   if (err) return <ErrorBanner message={err} />;
-  if (!article) {
+  if (!article)
     return (
       <p>
         Article not found. <Link to="/" className="underline">Back</Link>
       </p>
     );
-  }
 
   const image = (article.images && article.images[0]) || "/placeholder.jpg";
 
@@ -84,7 +72,7 @@ export default function Article() {
       <div className="p-6">
         <h1 className="text-2xl font-semibold">{article.title}</h1>
         <div className="mt-1 text-sm text-gray-600">
-          {article.source} • {new Date(article.publishDate).toLocaleString()}
+          {article.source} • {article.publishDate ? new Date(article.publishDate).toLocaleString() : ""}
         </div>
 
         <section className="mt-4">
